@@ -5,7 +5,7 @@
   <title>Flood Height AR</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#000; overflow:hidden; font-family:sans-serif; }
+    body { overflow:hidden; font-family:sans-serif; background:#000; }
 
     #video {
       position:absolute; inset:0;
@@ -92,27 +92,9 @@
       color:white; font-size:14px;
       background:rgba(0,0,0,0.6);
       padding:10px 20px; border-radius:14px;
-      text-align:center; max-width:280px;
+      text-align:center; max-width:300px;
       line-height:1.5; z-index:20;
-      pointer-events:none; white-space:nowrap;
-    }
-
-    #depth-indicator {
-      position:absolute; left:20px;
-      top:50%; transform:translateY(-50%);
-      display:none; flex-direction:column;
-      align-items:center; gap:0; z-index:20;
-    }
-    .depth-mark {
-      display:flex; align-items:center; gap:8px;
-    }
-    .depth-line {
-      width:20px; height:1px;
-      background:rgba(255,255,255,0.5);
-    }
-    .depth-text {
-      color:rgba(255,255,255,0.6);
-      font-size:11px; white-space:nowrap;
+      pointer-events:none;
     }
   </style>
 </head>
@@ -121,7 +103,7 @@
 <video id="video" autoplay playsinline muted></video>
 <canvas id="canvas"></canvas>
 
-<div id="msg" style="display:none">Point camera at a 45° angle</div>
+<div id="msg" style="display:none">Point camera at a 45&deg; angle from the floor</div>
 
 <div id="start-screen">
   <h1>Flood Height<br>AR Simulator</h1>
@@ -139,7 +121,7 @@
     <div class="dot" id="dot-4"></div>
     <div class="dot" id="dot-5"></div>
   </div>
-  <div id="label">Point camera at a 45° angle</div>
+  <div id="label">Point camera at a 45&deg; angle from the floor</div>
   <div id="hint">Tap below to raise the flood level</div>
   <button id="btn" onclick="nextLevel()">Raise flood level</button>
   <button id="reset-btn" onclick="resetAll()">Start over</button>
@@ -197,6 +179,7 @@ async function startExperience() {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('ui').style.display = 'flex';
   document.getElementById('msg').style.display = 'block';
+  document.getElementById('msg').textContent = 'Point camera at a 45\u00b0 angle from the floor';
 
   rafId = requestAnimationFrame(drawLoop);
 }
@@ -323,13 +306,13 @@ function nextLevel() {
 function resetAll() {
   current = -1;
   animTarget = 0;
-  document.getElementById('label').textContent = 'Point camera at a 45° angle';
+  document.getElementById('label').textContent = 'Point camera at a 45\u00b0 angle from the floor';
   document.getElementById('label').style.background = 'rgba(26,95,168,0.9)';
   document.getElementById('hint').textContent = 'Tap below to raise the flood level';
   document.getElementById('btn').textContent = 'Raise flood level';
   document.getElementById('btn').disabled = false;
   document.getElementById('msg').style.display = 'block';
-  document.getElementById('msg').textContent = 'Point camera at a 45° angle';
+  document.getElementById('msg').textContent = 'Point camera at a 45\u00b0 angle from the floor';
   for (let i = 0; i < levels.length; i++) {
     document.getElementById('dot-'+i).classList.remove('active');
   }
