@@ -3,176 +3,134 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
   <title>Flood Height AR</title>
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { overflow: hidden; font-family: sans-serif; background: #000; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#000; overflow:hidden; font-family:sans-serif; }
 
-    #overlay {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 10; pointer-events: none;
+    #video {
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      transform:scaleX(-1);
+    }
+
+    #canvas {
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      pointer-events:none;
     }
 
     #start-screen {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: rgba(0,10,30,0.92);
-      z-index: 20; gap: 16px; padding: 32px;
-      text-align: center;
+      position:absolute; inset:0;
+      background:rgba(0,10,30,0.95);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      gap:18px; padding:36px;
+      text-align:center; z-index:30;
     }
-
     #start-screen h1 {
-      color: white; font-size: 24px;
-      font-weight: 700; line-height: 1.3;
-      margin: 0;
+      color:white; font-size:26px;
+      font-weight:700; line-height:1.3; margin:0;
     }
-
     #start-screen p {
-      color: rgba(255,255,255,0.7);
-      font-size: 15px; line-height: 1.6;
-      max-width: 280px; margin: 0;
+      color:rgba(255,255,255,0.7);
+      font-size:15px; line-height:1.6;
+      max-width:280px; margin:0;
     }
-
     #start-btn {
-      background: #1a5fa8; color: white;
-      border: none; padding: 16px 40px;
-      border-radius: 32px; font-size: 18px;
-      font-weight: 700; cursor: pointer;
-      pointer-events: all;
-      margin-top: 8px;
+      background:#1a5fa8; color:white;
+      border:none; padding:16px 44px;
+      border-radius:32px; font-size:18px;
+      font-weight:700; cursor:pointer;
+      margin-top:8px;
     }
-    #start-btn:active { transform: scale(0.97); }
-
-    #msg {
-      color: white; font-size: 14px;
-      background: rgba(0,0,0,0.6);
-      padding: 10px 20px; border-radius: 14px;
-      text-align: center; max-width: 280px;
-      line-height: 1.5; margin-bottom: 12px;
-      pointer-events: none;
-    }
-
-    #reticle {
-      width: 60px; height: 60px;
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    #reticle.visible { opacity: 1; }
 
     #ui {
-      position: absolute;
-      bottom: 36px; left: 50%;
-      transform: translateX(-50%);
-      display: flex; flex-direction: column;
-      align-items: center; gap: 10px;
-      z-index: 15; width: 92%;
-      pointer-events: none;
+      position:absolute; bottom:36px; left:50%;
+      transform:translateX(-50%);
+      display:none; flex-direction:column;
+      align-items:center; gap:10px;
+      z-index:20; width:92%;
     }
-
-    #dots { display: flex; gap: 7px; }
+    #dots { display:flex; gap:7px; }
     .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: rgba(255,255,255,0.25);
-      transition: background 0.4s;
+      width:8px; height:8px; border-radius:50%;
+      background:rgba(255,255,255,0.25);
+      transition:background 0.4s;
     }
-    .dot.active { background: white; }
-
+    .dot.active { background:white; }
     #label {
-      color: white; padding: 10px 24px;
-      border-radius: 24px; font-size: 20px;
-      font-weight: 700; text-align: center;
-      background: rgba(26,95,168,0.9);
-      transition: background 0.5s;
-      max-width: 320px;
-      pointer-events: none;
+      color:white; padding:10px 24px;
+      border-radius:24px; font-size:20px;
+      font-weight:700; text-align:center;
+      background:rgba(26,95,168,0.9);
+      transition:background 0.5s; max-width:320px;
     }
-
     #hint {
-      color: white; font-size: 13px;
-      background: rgba(0,0,0,0.55);
-      padding: 6px 16px; border-radius: 12px;
-      text-align: center; max-width: 300px;
-      line-height: 1.5;
-      pointer-events: none;
+      color:white; font-size:13px;
+      background:rgba(0,0,0,0.6);
+      padding:6px 16px; border-radius:12px;
+      text-align:center; max-width:300px; line-height:1.5;
     }
-
     #btn {
-      background: white; border: none;
-      padding: 15px 40px; border-radius: 32px;
-      font-size: 17px; font-weight: 700;
-      cursor: pointer; color: #0a1628;
-      pointer-events: all;
+      background:white; border:none;
+      padding:15px 40px; border-radius:32px;
+      font-size:17px; font-weight:700;
+      cursor:pointer; color:#0a1628;
     }
-    #btn:active { transform: scale(0.97); }
-    #btn:disabled { opacity: 0.4; }
-
+    #btn:active { transform:scale(0.97); }
+    #btn:disabled { opacity:0.4; }
     #reset-btn {
-      font-size: 13px; color: rgba(255,255,255,0.6);
-      background: none; border: none;
-      cursor: pointer; padding: 4px 12px;
-      pointer-events: all;
+      font-size:13px; color:rgba(255,255,255,0.6);
+      background:none; border:none;
+      cursor:pointer; padding:4px 12px;
     }
 
-    #place-btn {
-      background: #1a5fa8; color: white;
-      border: none; padding: 15px 40px;
-      border-radius: 32px; font-size: 17px;
-      font-weight: 700; cursor: pointer;
-      pointer-events: all; display: none;
+    #msg {
+      position:absolute; top:40px; left:50%;
+      transform:translateX(-50%);
+      color:white; font-size:14px;
+      background:rgba(0,0,0,0.6);
+      padding:10px 20px; border-radius:14px;
+      text-align:center; max-width:280px;
+      line-height:1.5; z-index:20;
+      pointer-events:none; white-space:nowrap;
     }
-    #place-btn:active { transform: scale(0.97); }
 
-    #no-webxr {
-      display: none;
-      position: absolute; inset: 0;
-      background: #000d1a;
-      flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 16px; padding: 32px; text-align: center;
-      z-index: 30;
+    #depth-indicator {
+      position:absolute; left:20px;
+      top:50%; transform:translateY(-50%);
+      display:none; flex-direction:column;
+      align-items:center; gap:0; z-index:20;
     }
-    #no-webxr p { color: rgba(255,255,255,0.75); font-size: 15px; line-height: 1.6; max-width: 280px; margin: 0; }
-    #no-webxr a { color: #3a8fd4; }
+    .depth-mark {
+      display:flex; align-items:center; gap:8px;
+    }
+    .depth-line {
+      width:20px; height:1px;
+      background:rgba(255,255,255,0.5);
+    }
+    .depth-text {
+      color:rgba(255,255,255,0.6);
+      font-size:11px; white-space:nowrap;
+    }
   </style>
 </head>
 <body>
 
-<div id="no-webxr">
-  <p>AR not supported on this browser.<br><br>
-  Please open this page in <strong style="color:white">Safari on iPhone</strong> (iOS 16+) or <strong style="color:white">Chrome on Android</strong>.<br><br>
-  <a href="">Tap to reload</a></p>
-</div>
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas"></canvas>
+
+<div id="msg" style="display:none">Point camera at the floor</div>
 
 <div id="start-screen">
   <h1>Flood Height<br>AR Simulator</h1>
-  <p>Point your camera at any flat surface — a floor, table, or ground — and see how high floodwater can rise.</p>
-  <p style="font-size:13px; color:rgba(255,255,255,0.45)">This experience uses your camera. No photos are saved.</p>
-  <button id="start-btn" onclick="startAR()">Start AR Experience</button>
+  <p>Point your camera at the floor and see how high floodwater can rise in real space.</p>
+  <p style="font-size:13px;color:rgba(255,255,255,0.4)">Camera access required. No photos are saved.</p>
+  <button id="start-btn" onclick="startExperience()">Start experience</button>
 </div>
 
-<div id="overlay">
-  <div id="msg">Move your camera slowly over a flat floor</div>
-</div>
-
-<svg id="reticle" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="30" cy="30" r="26" fill="rgba(255,255,255,0.08)" stroke="white" stroke-width="1.5" stroke-dasharray="6 4"/>
-  <circle cx="30" cy="30" r="4" fill="white" opacity="0.9"/>
-  <line x1="30" y1="8" x2="30" y2="18" stroke="white" stroke-width="1.5"/>
-  <line x1="30" y1="42" x2="30" y2="52" stroke="white" stroke-width="1.5"/>
-  <line x1="8" y1="30" x2="18" y2="30" stroke="white" stroke-width="1.5"/>
-  <line x1="42" y1="30" x2="52" y2="30" stroke="white" stroke-width="1.5"/>
-</svg>
-
-<div id="ui" style="display:none">
+<div id="ui">
   <div id="dots">
     <div class="dot" id="dot-0"></div>
     <div class="dot" id="dot-1"></div>
@@ -181,130 +139,164 @@
     <div class="dot" id="dot-4"></div>
     <div class="dot" id="dot-5"></div>
   </div>
-  <div id="label">Tap to place water</div>
-  <div id="hint">Point camera at the floor, then tap Place</div>
-  <button id="place-btn" onclick="placeWater()">Place flood here</button>
-  <button id="btn" onclick="nextLevel()" style="display:none">Raise flood level</button>
+  <div id="label">Point camera at the floor</div>
+  <div id="hint">Tap below to raise the flood level</div>
+  <button id="btn" onclick="nextLevel()">Raise flood level</button>
   <button id="reset-btn" onclick="resetAll()">Start over</button>
 </div>
 
-<canvas id="ar-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:none;"></canvas>
-
 <script>
 const levels = [
-  { label: "Ankle — 0.15 m",       hint: "Where many Singapore flash floods peak. Most people still walking.", color: "#534AB7", depth: 0.15 },
-  { label: "Knee — 0.30 m",        hint: "Most cars stall. Walking becomes very difficult and dangerous.",     color: "#185FA5", depth: 0.30 },
-  { label: "Waist — 0.60 m",       hint: "Singapore road closure threshold. Standing against current is unsafe.", color: "#0F6E56", depth: 0.60 },
-  { label: "Chest — 1.0 m",        hint: "Bukit Timah Rd flash flood peak (2021). Impossible to walk.",        color: "#854F0B", depth: 1.00 },
-  { label: "Head — 1.5 m",         hint: "Regional major floods: Jakarta 2020, KL 2021. Fully submerged.",     color: "#993C1D", depth: 1.50 },
-  { label: "Catastrophic — 3.0 m", hint: "Typhoon Haiyan storm surge (2013). Above a typical room ceiling.",   color: "#A32D2D", depth: 3.00 },
+  { label:"Ankle — 0.15 m",       hint:"Where many Singapore flash floods peak. Most people still walking.",        color:"#534AB7", frac:0.07 },
+  { label:"Knee — 0.30 m",        hint:"Most cars stall. Walking becomes very difficult and dangerous.",            color:"#185FA5", frac:0.16 },
+  { label:"Waist — 0.60 m",       hint:"Singapore road closure threshold. Standing against current is unsafe.",     color:"#0F6E56", frac:0.30 },
+  { label:"Chest — 1.0 m",        hint:"Bukit Timah Rd flash flood peak (2021). Impossible to walk.",              color:"#854F0B", frac:0.46 },
+  { label:"Head — 1.5 m",         hint:"Regional major floods: Jakarta 2020, KL 2021. Fully submerged.",           color:"#993C1D", frac:0.64 },
+  { label:"Catastrophic — 3.0 m", hint:"Typhoon Haiyan storm surge (2013). Above a typical room ceiling.",         color:"#A32D2D", frac:0.88 },
 ];
 
 let current = -1;
-let xrSession = null;
-let xrRefSpace = null;
-let hitTestSource = null;
-let renderer, scene, camera;
-let reticleMesh = null;
-let waterMesh = null;
-let surfaceMesh = null;
-let waterPlaced = false;
-let waterOrigin = null;
-let animFrame = null;
-let currentDepth = 0;
-let targetDepth = 0;
+let animTarget = 0;
+let animCurrent = 0;
+let tiltX = 0;
+let tiltZ = 0;
+let rafId = null;
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-async function startAR() {
-  if (!navigator.xr) { showNoXR(); return; }
-  const supported = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
-  if (!supported) { showNoXR(); return; }
-
-  try {
-    xrSession = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['hit-test'],
-      optionalFeatures: ['dom-overlay'],
-      domOverlay: { root: document.body }
-    });
-  } catch(e) { showNoXR(); return; }
-
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('ui').style.display = 'flex';
-  document.getElementById('place-btn').style.display = 'block';
-  document.getElementById('ar-canvas').style.display = 'block';
-
-  const { WebGLRenderer, Scene, PerspectiveCamera, Mesh,
-          PlaneGeometry, MeshBasicMaterial, RingGeometry,
-          MeshStandardMaterial, AmbientLight, Color } =
-    await import('https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js');
-
-  renderer = new WebGLRenderer({ canvas: document.getElementById('ar-canvas'), alpha: true, antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.xr.enabled = true;
-  await renderer.xr.setSession(xrSession);
-
-  scene = new Scene();
-  camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-  scene.add(new AmbientLight(0xffffff, 1));
-
-  const reticleGeo = new RingGeometry(0.12, 0.15, 32);
-  reticleGeo.rotateX(-Math.PI / 2);
-  reticleMesh = new Mesh(reticleGeo, new MeshBasicMaterial({ color: 0xffffff, opacity: 0.8, transparent: true }));
-  reticleMesh.visible = false;
-  scene.add(reticleMesh);
-
-  const viewerSpace = await xrSession.requestReferenceSpace('viewer');
-  xrRefSpace = await xrSession.requestReferenceSpace('local');
-  hitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
-
-  renderer.setAnimationLoop((time, frame) => {
-    if (!frame) return;
-    const hits = frame.getHitTestResults(hitTestSource);
-    if (hits.length > 0 && !waterPlaced) {
-      const pose = hits[0].getPose(xrRefSpace);
-      reticleMesh.visible = true;
-      reticleMesh.matrix.fromArray(pose.transform.matrix);
-      reticleMesh.matrix.decompose(reticleMesh.position, reticleMesh.quaternion, reticleMesh.scale);
-      document.getElementById('msg').textContent = 'Floor detected — tap Place to anchor the flood';
-      document.getElementById('place-btn').style.background = '#1a5fa8';
-    } else if (!waterPlaced) {
-      reticleMesh.visible = false;
-      document.getElementById('msg').textContent = 'Move your camera slowly over a flat floor';
-    }
-
-    if (waterMesh && waterPlaced) {
-      if (Math.abs(currentDepth - targetDepth) > 0.001) {
-        currentDepth += (targetDepth - currentDepth) * 0.06;
-        waterMesh.scale.y = Math.max(currentDepth, 0.001);
-        waterMesh.position.y = waterOrigin.y + currentDepth / 2;
-        if (surfaceMesh) surfaceMesh.position.y = waterOrigin.y + currentDepth;
-      }
-    }
-
-    renderer.render(scene, camera);
-  });
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
+resize();
+window.addEventListener('resize', resize);
 
-function placeWater() {
-  if (!reticleMesh.visible) {
-    document.getElementById('msg').textContent = 'Keep scanning — point camera at the floor';
+async function startExperience() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    await video.play();
+  } catch(e) {
+    alert('Camera access is needed for this experience. Please allow camera access and try again.');
     return;
   }
 
-  const { Mesh, BoxGeometry, PlaneGeometry, MeshBasicMaterial } =
-    THREE_CACHE;
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      await DeviceOrientationEvent.requestPermission();
+    } catch(e) {}
+  }
 
-  waterOrigin = reticleMesh.position.clone();
-  waterPlaced = true;
-  reticleMesh.visible = false;
+  window.addEventListener('deviceorientation', onOrientation);
 
-  document.getElementById('place-btn').style.display = 'none';
-  document.getElementById('btn').style.display = 'block';
-  document.getElementById('msg').textContent = 'Flood anchored! Tap Raise to increase the level.';
-  document.getElementById('label').textContent = 'Tap to raise the flood';
-  document.getElementById('hint').textContent = 'See how different flood depths compare to your height';
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('ui').style.display = 'flex';
+  document.getElementById('msg').style.display = 'block';
 
-  setTimeout(() => { document.getElementById('overlay').style.display = 'none'; }, 2000);
+  rafId = requestAnimationFrame(drawLoop);
+}
+
+function onOrientation(e) {
+  if (e.gamma !== null) tiltX = e.gamma / 90;
+  if (e.beta !== null)  tiltZ = (e.beta - 90) / 90;
+}
+
+function drawLoop() {
+  rafId = requestAnimationFrame(drawLoop);
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  if (animCurrent < 0.001 && current < 0) return;
+
+  animCurrent += (animTarget - animCurrent) * 0.055;
+
+  const waterH = animCurrent * h;
+  const baseY  = h - waterH;
+
+  const tiltOffsetX = tiltX * 28;
+  const tiltOffsetZ = tiltZ * 18;
+  const surfaceY    = baseY + tiltOffsetZ;
+
+  const col = current >= 0 ? levels[current].color : levels[0].color;
+  const hex  = col.replace('#','');
+  const r    = parseInt(hex.slice(0,2),16);
+  const g    = parseInt(hex.slice(2,4),16);
+  const b    = parseInt(hex.slice(4,6),16);
+
+  ctx.save();
+
+  const bodyGrad = ctx.createLinearGradient(0, surfaceY, 0, h);
+  bodyGrad.addColorStop(0, `rgba(${r},${g},${b},0.55)`);
+  bodyGrad.addColorStop(1, `rgba(${r},${g},${b},0.72)`);
+
+  const cp1x = w * 0.25 + tiltOffsetX;
+  const cp2x = w * 0.75 + tiltOffsetX;
+  const amplitude = 6 + animCurrent * 10;
+  const t = Date.now() / 1200;
+  const wave1 = Math.sin(t) * amplitude;
+  const wave2 = Math.sin(t + Math.PI) * amplitude;
+
+  ctx.beginPath();
+  ctx.moveTo(0, surfaceY + wave1);
+  ctx.bezierCurveTo(
+    cp1x, surfaceY + wave2 - 8,
+    cp2x, surfaceY + wave1 + 8,
+    w, surfaceY + wave2
+  );
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  ctx.fillStyle = bodyGrad;
+  ctx.fill();
+
+  const surfGrad = ctx.createLinearGradient(0, surfaceY - 10, 0, surfaceY + 18);
+  surfGrad.addColorStop(0, `rgba(${Math.min(r+60,255)},${Math.min(g+60,255)},${Math.min(b+60,255)},0.0)`);
+  surfGrad.addColorStop(0.4, `rgba(${Math.min(r+80,255)},${Math.min(g+80,255)},${Math.min(b+80,255)},0.55)`);
+  surfGrad.addColorStop(1, `rgba(${r},${g},${b},0.0)`);
+
+  ctx.beginPath();
+  ctx.moveTo(0, surfaceY + wave1);
+  ctx.bezierCurveTo(
+    cp1x, surfaceY + wave2 - 8,
+    cp2x, surfaceY + wave1 + 8,
+    w, surfaceY + wave2
+  );
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = `rgba(${Math.min(r+100,255)},${Math.min(g+100,255)},${Math.min(b+100,255)},0.7)`;
+  ctx.stroke();
+
+  const shimmerX = (w * 0.3 + tiltOffsetX * 2) % w;
+  const shimmerGrad = ctx.createLinearGradient(shimmerX - 60, 0, shimmerX + 60, 0);
+  shimmerGrad.addColorStop(0, 'rgba(255,255,255,0)');
+  shimmerGrad.addColorStop(0.5, 'rgba(255,255,255,0.12)');
+  shimmerGrad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shimmerGrad;
+  ctx.fillRect(0, surfaceY, w, waterH);
+
+  if (current >= 0) {
+    const lineY = surfaceY + wave1 * 0.5;
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, lineY);
+    ctx.lineTo(w, lineY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = '500 13px sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.textAlign = 'right';
+    ctx.fillText(levels[current].label.split('—')[1]?.trim() || '', w - 16, lineY - 7);
+  }
+
+  ctx.restore();
 }
 
 function nextLevel() {
@@ -312,15 +304,15 @@ function nextLevel() {
   current++;
   const lvl = levels[current];
 
+  animTarget = lvl.frac;
   document.getElementById('label').textContent = lvl.label;
   document.getElementById('label').style.background = lvl.color + 'dd';
   document.getElementById('hint').textContent = lvl.hint;
+  document.getElementById('msg').style.display = 'none';
 
   for (let i = 0; i < levels.length; i++) {
-    document.getElementById('dot-' + i).classList.toggle('active', i === current);
+    document.getElementById('dot-'+i).classList.toggle('active', i === current);
   }
-
-  targetDepth = lvl.depth;
 
   if (current === levels.length - 1) {
     document.getElementById('btn').textContent = 'Peak reached';
@@ -329,71 +321,19 @@ function nextLevel() {
 }
 
 function resetAll() {
-  current = -1; currentDepth = 0; targetDepth = 0; waterPlaced = false;
-  if (waterMesh) { scene.remove(waterMesh); waterMesh = null; }
-  if (surfaceMesh) { scene.remove(surfaceMesh); surfaceMesh = null; }
-  reticleMesh.visible = false;
-  waterOrigin = null;
-
-  document.getElementById('label').textContent = 'Tap to place water';
+  current = -1;
+  animTarget = 0;
+  document.getElementById('label').textContent = 'Point camera at the floor';
   document.getElementById('label').style.background = 'rgba(26,95,168,0.9)';
-  document.getElementById('hint').textContent = 'Point camera at the floor, then tap Place';
+  document.getElementById('hint').textContent = 'Tap below to raise the flood level';
   document.getElementById('btn').textContent = 'Raise flood level';
   document.getElementById('btn').disabled = false;
-  document.getElementById('btn').style.display = 'none';
-  document.getElementById('place-btn').style.display = 'block';
-  document.getElementById('overlay').style.display = 'flex';
-  document.getElementById('msg').textContent = 'Move your camera slowly over a flat floor';
+  document.getElementById('msg').style.display = 'block';
+  document.getElementById('msg').textContent = 'Point camera at the floor';
   for (let i = 0; i < levels.length; i++) {
-    document.getElementById('dot-' + i).classList.remove('active');
+    document.getElementById('dot-'+i).classList.remove('active');
   }
 }
-
-function showNoXR() {
-  document.getElementById('start-screen').style.display = 'none';
-  document.getElementById('no-webxr').style.display = 'flex';
-}
-
-const THREE_CACHE = {};
-
-async function initThreeHelpers() {
-  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js');
-  Object.assign(THREE_CACHE, THREE);
-
-  const origPlace = placeWater;
-  window.placeWater = function() {
-    if (!reticleMesh || !reticleMesh.visible) {
-      document.getElementById('msg').textContent = 'Keep scanning — point camera at the floor';
-      return;
-    }
-    waterOrigin = reticleMesh.position.clone();
-    waterPlaced = true;
-    reticleMesh.visible = false;
-
-    const geo = new THREE.BoxGeometry(3, 1, 3);
-    const mat = new THREE.MeshBasicMaterial({ color: 0x1a5fa8, transparent: true, opacity: 0.52 });
-    waterMesh = new THREE.Mesh(geo, mat);
-    waterMesh.position.copy(waterOrigin);
-    waterMesh.scale.y = 0.001;
-    scene.add(waterMesh);
-
-    const sgeo = new THREE.PlaneGeometry(3.1, 3.1);
-    const smat = new THREE.MeshBasicMaterial({ color: 0x3a8fd4, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
-    surfaceMesh = new THREE.Mesh(sgeo, smat);
-    surfaceMesh.rotation.x = -Math.PI / 2;
-    surfaceMesh.position.copy(waterOrigin);
-    scene.add(surfaceMesh);
-
-    document.getElementById('place-btn').style.display = 'none';
-    document.getElementById('btn').style.display = 'block';
-    document.getElementById('msg').textContent = 'Flood anchored! Tap Raise to increase the level.';
-    document.getElementById('label').textContent = 'Tap to raise the flood';
-    document.getElementById('hint').textContent = 'See how different flood depths compare to your height';
-    setTimeout(() => { document.getElementById('overlay').style.display = 'none'; }, 2500);
-  };
-}
-
-initThreeHelpers();
 </script>
 </body>
 </html>
