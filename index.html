@@ -61,7 +61,7 @@
     .dot.active { background:white; }
     #label {
       color:white; padding:10px 24px;
-      border-radius:24px; font-size:20px;
+      border-radius:24px; font-size:18px;
       font-weight:700; text-align:center;
       background:rgba(26,95,168,0.9);
       transition:background 0.5s; max-width:320px;
@@ -103,11 +103,11 @@
 <video id="video" autoplay playsinline muted></video>
 <canvas id="canvas"></canvas>
 
-<div id="msg" style="display:none">Point camera at a 45&deg; angle from the floor</div>
+<div id="msg" style="display:none">Point your camera at a wall, door, or pillar in front of you. Hold your phone upright.</div>
 
 <div id="start-screen">
   <h1>Flood Height<br>AR Simulator</h1>
-  <p>Point your camera at the floor and see how high floodwater can rise in real space.</p>
+  <p>Point your camera at a wall, door, or pillar and see how high floodwater can rise in real space.</p>
   <p style="font-size:13px;color:rgba(255,255,255,0.4)">Camera access required. No photos are saved.</p>
   <button id="start-btn" onclick="startExperience()">Start experience</button>
 </div>
@@ -121,8 +121,8 @@
     <div class="dot" id="dot-4"></div>
     <div class="dot" id="dot-5"></div>
   </div>
-  <div id="label">Point camera at a 45&deg; angle from the floor</div>
-  <div id="hint">Tap below to raise the flood level</div>
+  <div id="label">Point camera at a wall, door, or pillar</div>
+  <div id="hint">Hold your phone upright. Tap below to raise the flood level.</div>
   <button id="btn" onclick="nextLevel()">Raise flood level</button>
   <button id="reset-btn" onclick="resetAll()">Start over</button>
 </div>
@@ -179,7 +179,7 @@ async function startExperience() {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('ui').style.display = 'flex';
   document.getElementById('msg').style.display = 'block';
-  document.getElementById('msg').textContent = 'Point camera at a 45\u00b0 angle from the floor';
+  document.getElementById('msg').textContent = 'Point your camera at a wall, door, or pillar in front of you. Hold your phone upright.';
 
   rafId = requestAnimationFrame(drawLoop);
 }
@@ -306,13 +306,13 @@ function nextLevel() {
 function resetAll() {
   current = -1;
   animTarget = 0;
-  document.getElementById('label').textContent = 'Point camera at a 45\u00b0 angle from the floor';
+  document.getElementById('label').textContent = 'Point camera at a wall, door, or pillar';
   document.getElementById('label').style.background = 'rgba(26,95,168,0.9)';
-  document.getElementById('hint').textContent = 'Tap below to raise the flood level';
+  document.getElementById('hint').textContent = 'Hold your phone upright. Tap below to raise the flood level.';
   document.getElementById('btn').textContent = 'Raise flood level';
   document.getElementById('btn').disabled = false;
   document.getElementById('msg').style.display = 'block';
-  document.getElementById('msg').textContent = 'Point camera at a 45\u00b0 angle from the floor';
+  document.getElementById('msg').textContent = 'Point your camera at a wall, door, or pillar in front of you. Hold your phone upright.';
   for (let i = 0; i < levels.length; i++) {
     document.getElementById('dot-'+i).classList.remove('active');
   }
