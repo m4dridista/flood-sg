@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+  <title>Flood Height AR</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; font-family: sans-serif; background: #000; }
+
+    #overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 10; pointer-events: none;
+    }
+
+    #start-screen {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(0,10,30,0.92);
+      z-index: 20; gap: 16px; padding: 32px;
+      text-align: center;
+    }
+
+    #start-screen h1 {
+      color: white; font-size: 24px;
+      font-weight: 700; line-height: 1.3;
+      margin: 0;
+    }
+
+    #start-screen p {
+      color: rgba(255,255,255,0.7);
+      font-size: 15px; line-height: 1.6;
+      max-width: 280px; margin: 0;
+    }
+
+    #start-btn {
+      background: #1a5fa8; color: white;
+      border: none; padding: 16px 40px;
+      border-radius: 32px; font-size: 18px;
+      font-weight: 700; cursor: pointer;
+      pointer-events: all;
+      margin-top: 8px;
+    }
+    #start-btn:active { transform: scale(0.97); }
+
+    #msg {
+      color: white; font-size: 14px;
+      background: rgba(0,0,0,0.6);
+      padding: 10px 20px; border-radius: 14px;
+      text-align: center; max-width: 280px;
+      line-height: 1.5; margin-bottom: 12px;
+      pointer-events: none;
+    }
+
+    #reticle {
+      width: 60px; height: 60px;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #reticle.visible { opacity: 1; }
+
+    #ui {
+      position: absolute;
+      bottom: 36px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 10px;
+      z-index: 15; width: 92%;
+      pointer-events: none;
+    }
+
+    #dots { display: flex; gap: 7px; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transition: background 0.4s;
+    }
+    .dot.active { background: white; }
+
+    #label {
+      color: white; padding: 10px 24px;
+      border-radius: 24px; font-size: 20px;
+      font-weight: 700; text-align: center;
+      background: rgba(26,95,168,0.9);
+      transition: background 0.5s;
+      max-width: 320px;
+      pointer-events: none;
+    }
+
+    #hint {
+      color: white; font-size: 13px;
+      background: rgba(0,0,0,0.55);
+      padding: 6px 16px; border-radius: 12px;
+      text-align: center; max-width: 300px;
+      line-height: 1.5;
+      pointer-events: none;
+    }
+
+    #btn {
+      background: white; border: none;
+      padding: 15px 40px; border-radius: 32px;
+      font-size: 17px; font-weight: 700;
+      cursor: pointer; color: #0a1628;
+      pointer-events: all;
+    }
+    #btn:active { transform: scale(0.97); }
+    #btn:disabled { opacity: 0.4; }
+
+    #reset-btn {
+      font-size: 13px; color: rgba(255,255,255,0.6);
+      background: none; border: none;
+      cursor: pointer; padding: 4px 12px;
+      pointer-events: all;
+    }
+
+    #place-btn {
+      background: #1a5fa8; color: white;
+      border: none; padding: 15px 40px;
+      border-radius: 32px; font-size: 17px;
+      font-weight: 700; cursor: pointer;
+      pointer-events: all; display: none;
+    }
+    #place-btn:active { transform: scale(0.97); }
+
+    #no-webxr {
+      display: none;
+      position: absolute; inset: 0;
+      background: #000d1a;
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; padding: 32px; text-align: center;
+      z-index: 30;
+    }
+    #no-webxr p { color: rgba(255,255,255,0.75); font-size: 15px; line-height: 1.6; max-width: 280px; margin: 0; }
+    #no-webxr a { color: #3a8fd4; }
+  </style>
+</head>
+<body>
+
+<div id="no-webxr">
+  <p>AR not supported on this browser.<br><br>
+  Please open this page in <strong style="color:white">Safari on iPhone</strong> (iOS 16+) or <strong style="color:white">Chrome on Android</strong>.<br><br>
+  <a href="">Tap to reload</a></p>
+</div>
+
+<div id="start-screen">
+  <h1>Flood Height<br>AR Simulator</h1>
+  <p>Point your camera at any flat surface — a floor, table, or ground — and see how high floodwater can rise.</p>
+  <p style="font-size:13px; color:rgba(255,255,255,0.45)">This experience uses your camera. No photos are saved.</p>
+  <button id="start-btn" onclick="startAR()">Start AR Experience</button>
+</div>
+
+<div id="overlay">
+  <div id="msg">Move your camera slowly over a flat floor</div>
+</div>
+
+<svg id="reticle" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="30" cy="30" r="26" fill="rgba(255,255,255,0.08)" stroke="white" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <circle cx="30" cy="30" r="4" fill="white" opacity="0.9"/>
+  <line x1="30" y1="8" x2="30" y2="18" stroke="white" stroke-width="1.5"/>
+  <line x1="30" y1="42" x2="30" y2="52" stroke="white" stroke-width="1.5"/>
+  <line x1="8" y1="30" x2="18" y2="30" stroke="white" stroke-width="1.5"/>
+  <line x1="42" y1="30" x2="52" y2="30" stroke="white" stroke-width="1.5"/>
+</svg>
+
+<div id="ui" style="display:none">
+  <div id="dots">
+    <div class="dot" id="dot-0"></div>
+    <div class="dot" id="dot-1"></div>
+    <div class="dot" id="dot-2"></div>
+    <div class="dot" id="dot-3"></div>
+    <div class="dot" id="dot-4"></div>
+    <div class="dot" id="dot-5"></div>
+  </div>
+  <div id="label">Tap to place water</div>
+  <div id="hint">Point camera at the floor, then tap Place</div>
+  <button id="place-btn" onclick="placeWater()">Place flood here</button>
+  <button id="btn" onclick="nextLevel()" style="display:none">Raise flood level</button>
+  <button id="reset-btn" onclick="resetAll()">Start over</button>
+</div>
+
+<canvas id="ar-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:none;"></canvas>
+
+<script>
+const levels = [
+  { label: "Ankle — 0.15 m",       hint: "Where many Singapore flash floods peak. Most people still walking.", color: "#534AB7", depth: 0.15 },
+  { label: "Knee — 0.30 m",        hint: "Most cars stall. Walking becomes very difficult and dangerous.",     color: "#185FA5", depth: 0.30 },
+  { label: "Waist — 0.60 m",       hint: "Singapore road closure threshold. Standing against current is unsafe.", color: "#0F6E56", depth: 0.60 },
+  { label: "Chest — 1.0 m",        hint: "Bukit Timah Rd flash flood peak (2021). Impossible to walk.",        color: "#854F0B", depth: 1.00 },
+  { label: "Head — 1.5 m",         hint: "Regional major floods: Jakarta 2020, KL 2021. Fully submerged.",     color: "#993C1D", depth: 1.50 },
+  { label: "Catastrophic — 3.0 m", hint: "Typhoon Haiyan storm surge (2013). Above a typical room ceiling.",   color: "#A32D2D", depth: 3.00 },
+];
+
+let current = -1;
+let xrSession = null;
+let xrRefSpace = null;
+let hitTestSource = null;
+let renderer, scene, camera;
+let reticleMesh = null;
+let waterMesh = null;
+let surfaceMesh = null;
+let waterPlaced = false;
+let waterOrigin = null;
+let animFrame = null;
+let currentDepth = 0;
+let targetDepth = 0;
+
+async function startAR() {
+  if (!navigator.xr) { showNoXR(); return; }
+  const supported = await navigator.xr.isSessionSupported('immersive-ar').catch(() => false);
+  if (!supported) { showNoXR(); return; }
+
+  try {
+    xrSession = await navigator.xr.requestSession('immersive-ar', {
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay'],
+      domOverlay: { root: document.body }
+    });
+  } catch(e) { showNoXR(); return; }
+
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('ui').style.display = 'flex';
+  document.getElementById('place-btn').style.display = 'block';
+  document.getElementById('ar-canvas').style.display = 'block';
+
+  const { WebGLRenderer, Scene, PerspectiveCamera, Mesh,
+          PlaneGeometry, MeshBasicMaterial, RingGeometry,
+          MeshStandardMaterial, AmbientLight, Color } =
+    await import('https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js');
+
+  renderer = new WebGLRenderer({ canvas: document.getElementById('ar-canvas'), alpha: true, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.xr.enabled = true;
+  await renderer.xr.setSession(xrSession);
+
+  scene = new Scene();
+  camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+  scene.add(new AmbientLight(0xffffff, 1));
+
+  const reticleGeo = new RingGeometry(0.12, 0.15, 32);
+  reticleGeo.rotateX(-Math.PI / 2);
+  reticleMesh = new Mesh(reticleGeo, new MeshBasicMaterial({ color: 0xffffff, opacity: 0.8, transparent: true }));
+  reticleMesh.visible = false;
+  scene.add(reticleMesh);
+
+  const viewerSpace = await xrSession.requestReferenceSpace('viewer');
+  xrRefSpace = await xrSession.requestReferenceSpace('local');
+  hitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
+
+  renderer.setAnimationLoop((time, frame) => {
+    if (!frame) return;
+    const hits = frame.getHitTestResults(hitTestSource);
+    if (hits.length > 0 && !waterPlaced) {
+      const pose = hits[0].getPose(xrRefSpace);
+      reticleMesh.visible = true;
+      reticleMesh.matrix.fromArray(pose.transform.matrix);
+      reticleMesh.matrix.decompose(reticleMesh.position, reticleMesh.quaternion, reticleMesh.scale);
+      document.getElementById('msg').textContent = 'Floor detected — tap Place to anchor the flood';
+      document.getElementById('place-btn').style.background = '#1a5fa8';
+    } else if (!waterPlaced) {
+      reticleMesh.visible = false;
+      document.getElementById('msg').textContent = 'Move your camera slowly over a flat floor';
+    }
+
+    if (waterMesh && waterPlaced) {
+      if (Math.abs(currentDepth - targetDepth) > 0.001) {
+        currentDepth += (targetDepth - currentDepth) * 0.06;
+        waterMesh.scale.y = Math.max(currentDepth, 0.001);
+        waterMesh.position.y = waterOrigin.y + currentDepth / 2;
+        if (surfaceMesh) surfaceMesh.position.y = waterOrigin.y + currentDepth;
+      }
+    }
+
+    renderer.render(scene, camera);
+  });
+}
+
+function placeWater() {
+  if (!reticleMesh.visible) {
+    document.getElementById('msg').textContent = 'Keep scanning — point camera at the floor';
+    return;
+  }
+
+  const { Mesh, BoxGeometry, PlaneGeometry, MeshBasicMaterial } =
+    THREE_CACHE;
+
+  waterOrigin = reticleMesh.position.clone();
+  waterPlaced = true;
+  reticleMesh.visible = false;
+
+  document.getElementById('place-btn').style.display = 'none';
+  document.getElementById('btn').style.display = 'block';
+  document.getElementById('msg').textContent = 'Flood anchored! Tap Raise to increase the level.';
+  document.getElementById('label').textContent = 'Tap to raise the flood';
+  document.getElementById('hint').textContent = 'See how different flood depths compare to your height';
+
+  setTimeout(() => { document.getElementById('overlay').style.display = 'none'; }, 2000);
+}
+
+function nextLevel() {
+  if (current >= levels.length - 1) return;
+  current++;
+  const lvl = levels[current];
+
+  document.getElementById('label').textContent = lvl.label;
+  document.getElementById('label').style.background = lvl.color + 'dd';
+  document.getElementById('hint').textContent = lvl.hint;
+
+  for (let i = 0; i < levels.length; i++) {
+    document.getElementById('dot-' + i).classList.toggle('active', i === current);
+  }
+
+  targetDepth = lvl.depth;
+
+  if (current === levels.length - 1) {
+    document.getElementById('btn').textContent = 'Peak reached';
+    document.getElementById('btn').disabled = true;
+  }
+}
+
+function resetAll() {
+  current = -1; currentDepth = 0; targetDepth = 0; waterPlaced = false;
+  if (waterMesh) { scene.remove(waterMesh); waterMesh = null; }
+  if (surfaceMesh) { scene.remove(surfaceMesh); surfaceMesh = null; }
+  reticleMesh.visible = false;
+  waterOrigin = null;
+
+  document.getElementById('label').textContent = 'Tap to place water';
+  document.getElementById('label').style.background = 'rgba(26,95,168,0.9)';
+  document.getElementById('hint').textContent = 'Point camera at the floor, then tap Place';
+  document.getElementById('btn').textContent = 'Raise flood level';
+  document.getElementById('btn').disabled = false;
+  document.getElementById('btn').style.display = 'none';
+  document.getElementById('place-btn').style.display = 'block';
+  document.getElementById('overlay').style.display = 'flex';
+  document.getElementById('msg').textContent = 'Move your camera slowly over a flat floor';
+  for (let i = 0; i < levels.length; i++) {
+    document.getElementById('dot-' + i).classList.remove('active');
+  }
+}
+
+function showNoXR() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('no-webxr').style.display = 'flex';
+}
+
+const THREE_CACHE = {};
+
+async function initThreeHelpers() {
+  const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js');
+  Object.assign(THREE_CACHE, THREE);
+
+  const origPlace = placeWater;
+  window.placeWater = function() {
+    if (!reticleMesh || !reticleMesh.visible) {
+      document.getElementById('msg').textContent = 'Keep scanning — point camera at the floor';
+      return;
+    }
+    waterOrigin = reticleMesh.position.clone();
+    waterPlaced = true;
+    reticleMesh.visible = false;
+
+    const geo = new THREE.BoxGeometry(3, 1, 3);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x1a5fa8, transparent: true, opacity: 0.52 });
+    waterMesh = new THREE.Mesh(geo, mat);
+    waterMesh.position.copy(waterOrigin);
+    waterMesh.scale.y = 0.001;
+    scene.add(waterMesh);
+
+    const sgeo = new THREE.PlaneGeometry(3.1, 3.1);
+    const smat = new THREE.MeshBasicMaterial({ color: 0x3a8fd4, transparent: true, opacity: 0.35, side: THREE.DoubleSide });
+    surfaceMesh = new THREE.Mesh(sgeo, smat);
+    surfaceMesh.rotation.x = -Math.PI / 2;
+    surfaceMesh.position.copy(waterOrigin);
+    scene.add(surfaceMesh);
+
+    document.getElementById('place-btn').style.display = 'none';
+    document.getElementById('btn').style.display = 'block';
+    document.getElementById('msg').textContent = 'Flood anchored! Tap Raise to increase the level.';
+    document.getElementById('label').textContent = 'Tap to raise the flood';
+    document.getElementById('hint').textContent = 'See how different flood depths compare to your height';
+    setTimeout(() => { document.getElementById('overlay').style.display = 'none'; }, 2500);
+  };
+}
+
+initThreeHelpers();
+</script>
+</body>
+</html>
