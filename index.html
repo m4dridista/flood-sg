@@ -121,7 +121,7 @@
 <video id="video" autoplay playsinline muted></video>
 <canvas id="canvas"></canvas>
 
-<div id="msg" style="display:none">Point camera at the floor</div>
+<div id="msg" style="display:none">Point camera at a 45° angle</div>
 
 <div id="start-screen">
   <h1>Flood Height<br>AR Simulator</h1>
@@ -139,7 +139,7 @@
     <div class="dot" id="dot-4"></div>
     <div class="dot" id="dot-5"></div>
   </div>
-  <div id="label">Point camera at the floor</div>
+  <div id="label">Point camera at a 45° angle</div>
   <div id="hint">Tap below to raise the flood level</div>
   <button id="btn" onclick="nextLevel()">Raise flood level</button>
   <button id="reset-btn" onclick="resetAll()">Start over</button>
@@ -329,7 +329,7 @@ function resetAll() {
   document.getElementById('btn').textContent = 'Raise flood level';
   document.getElementById('btn').disabled = false;
   document.getElementById('msg').style.display = 'block';
-  document.getElementById('msg').textContent = 'Point camera at the floor';
+  document.getElementById('msg').textContent = 'Point camera at a 45° angle';
   for (let i = 0; i < levels.length; i++) {
     document.getElementById('dot-'+i).classList.remove('active');
   }
